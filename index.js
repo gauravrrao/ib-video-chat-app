@@ -23,10 +23,10 @@ app.post("/signup", async(req,res)=>{
         res.status(400).send("username is already present")
     }
     let salt = 10
-    let hash = bcrypt.hash(password,salt)
+    let hash = await bcrypt.hash(password,salt)
     user.push({
         name:name,
-        hash:hash
+        hashpassword:hash
     })
     res.status(200).send("user created successfully")
 })
@@ -34,8 +34,8 @@ app.post("/signup", async(req,res)=>{
 app.post("/signin", async(req,res)=>{
     const {name, password} = req.body
     let isPresent = user.find((val)=>(val.name == name))
-    let match = await bcrypt.compare(password,hash)
-    if(isPresent && match){
+    let match = await bcrypt.compare(password,isPresent.hashpassword)
+    if(match){
         let token = jwt.sign(name,jwtsecret)
         res.status(200).json({
             token:token
