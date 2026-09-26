@@ -1,6 +1,7 @@
 const express = require("express")
 const app = express()
 const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 const jwtsecret = "gaurav"
 app.use(express.json())
 
@@ -16,22 +17,25 @@ function auth(req,res,next){
     }
 }
 
-app.post("/signup",(req,res)=>{
+app.post("/signup", async(req,res)=>{
     const {name, password} = req.body;
     if(user.find((val)=>val.name == name)){
         res.status(400).send("username is already present")
     }
+    let salt = 10
+    let hash = bcrypt.hash(password,salt)
     user.push({
         name:name,
-        password:password
+        hash:hash
     })
     res.status(200).send("user created successfully")
 })
 
-app.post("/signin",(req,res)=>{
+app.post("/signin", async(req,res)=>{
     const {name, password} = req.body
     let isPresent = user.find((val)=>(val.name == name))
-    if(isPresent){
+    let match = await bcrypt.compare(password,hash)
+    if(isPresent && match){
         let token = jwt.sign(name,jwtsecret)
         res.status(200).json({
             token:token
